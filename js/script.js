@@ -29,6 +29,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
                // console.log("Fin Partie");
             }
 
+            if(this.serpent !== undefined){//Si le serpent à été crée
+                this.serpent.supprimeSerpent();//Supprime le serpent à la fin
+                this.serpent = undefined; //Reset les données du serpent
+            }
+
         }
 
         affichagePointage(_LePointage){
@@ -50,6 +55,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
             this.serpentLongeur = 1;
             this.tabCarreSerpent = [];
+
+            this.touche = false;
 
             this.vitesse = 250;
             this.timing = setInterval(this.controleSerpent.bind(this), this.vitesse); //Appel controleSerpent a chaque 250 ms dans le contexte du serpent
@@ -91,17 +98,55 @@ document.addEventListener("DOMContentLoaded", function(event) {
             var nextX = this.currentX + this.nextMoveX;
             var nextY = this.currentY + this.nextMoveY;
 
-            this.dessineCarre(nextX, nextY);
-            this.currentX = nextX;
-            this.currentY = nextY;
+            this.tabCarreSerpent.forEach(function (element){
+                if(nextX === element[1] && nextY === element[2]){
+                    console.log("touche moi-meme!");
+                    this.leJeu.finPartie();
+                    this.touche = true;
+                }
+            }.bind(this));
+
+            if(nextY < 0 || nextX < 0 || nextY > this.leJeu.grandeurGrille -1 || nextX > this.leJeu.grandeurGrille -1){ //Si je touche une limite
+                //console.log("touche limite");
+                this.leJeu.finPartie();
+                this.touche = true;
+            }
+
+            if (!this.touche){
+
+                if(this.currentX === this.leJeu.pomme.tabPomme[1] && this.currentY === this.leJeu.pomme.tabPomme[2]){
+                    this.serpentLongeur++;
+
+                    this.leJeu.affichagePointage(this.serpentLongeur);
+
+                    this.leJeu.pomme.supprimePomme();
+                    this.leJeu.pomme.ajoutePomme();
+                }
+
+                this.dessineCarre(nextX, nextY);
+                this.currentX = nextX;
+                this.currentY = nextY;
+            }
+
         }
 
         dessineCarre(x, y){
+            var unCarre = [this.leJeu.s.rect(x * this.leJeu.grandeurCarre, y * this.leJeu.grandeurCarre, this.leJeu.grandeurCarre, this.leJeu.grandeurCarre), x, y]; //Cree un carre de sepent et garde sa position en memoire
+            this.tabCarreSerpent.push(unCarre); //Ajoute le carré dans le tableau
 
+            if (this.tabCarreSerpent.length > this.serpentLongeur){
+                this.tabCarreSerpent[0][0].remove();//enleve le carre a l'écran
+                this.tabCarreSerpent.shift();//enleve le premier élément du tableau
+            }
         }
 
         supprimeSerpent(){
+            clearInterval(this.timing);
 
+            while (this.tabCarreSerpent.length > 0){
+                this.tabCarreSerpent[0][0].remove();
+                this.tabCarreSerpent.shift();
+            }
         }
     }
 
